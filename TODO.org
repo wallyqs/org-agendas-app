@@ -1,0 +1,21 @@
+#+title:	Basic web app for Org Agendas
+#+startup:	showeverything
+
+*** [0/3] 0.0.2 
+
+- [ ] Basic Authentication
+- [ ] Elisp to use the API via Emacs
+- [ ] Manage updates to a single agenda and track them in properties drawers
+
+*** [3/3] 0.0.1
+
+Can only append to an agenda.
+
+- [X] Persist data in db
+  + Using docker container
+    : sudo docker run  -p 0.0.0.0:5432:5432  -t -i -d postgres:latest
+    : sudo psql -h 127.0.0.1 -p 5432 -U postgres
+- [X] get, put basic actions for ~/api/v1/agendas/:name~
+- [X] Heroku bootstrap
+  + [X] Database
+  + [X] App

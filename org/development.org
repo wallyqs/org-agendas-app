@@ -1,0 +1,36 @@
+#+TITLE:    Development setup
+#+include: "org/environment.org"
+#+include: "org/app.org"
+
+*** Start the webserver
+
+Start the webserver:
+
+#+name: run-webserver
+#+BEGIN_SRC sh
+# Cleanup in just in case
+[ -e ./.bundle/config ] && rm ./.bundle/config
+bundle install
+bundle exec shotgun -p 8888 -o 0.0.0.0 -s puma
+#+END_SRC
+
+*** Watch for any changes and reload the application
+
+#+begin_src ruby :tangle Guardfile
+# -*- mode: ruby -*-
+require 'org-converge'
+
+watch('org/app.org') do |m|
+  OrgConverge::Command.new({
+    '<org_file>' => 'org/app.org',
+    '--tangle'   => true
+  }).execute!
+end
+
+interactor :off
+#+end_src
+
+#+name: guard
+#+begin_src sh
+bundle exec guard
+#+end_src

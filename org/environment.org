@@ -1,0 +1,14 @@
+#+TITLE: Environments
+
+*** Development environment
+
+Include the Database uri for development.
+
+#+BEGIN_SRC sh :tangle .env
+DATABASE_URI="postgres://postgres:postgres@127.0.0.1:5555/org_db_dev"
+#+END_SRC
+
+*** Testing environment						       :test:
+*** Production environment					 :production:
+
+#+include: "org/secrets.org"

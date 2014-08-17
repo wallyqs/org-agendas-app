@@ -1,0 +1,23 @@
+#+TITLE:   Deployment
+#+include: "org/environment.org" :tag production
+
+*** Releasing the application to Heroku
+
+#+begin_src sh :tangle Procfile
+web: puma -p $PORT
+#+end_src
+
+#+name: prepare-release
+#+BEGIN_SRC sh 
+release_time=`date "+%Y%m%d%H%M%S"`
+git     branch   heroku-master-$release_time
+git     checkout heroku-master-$release_time
+bundle  install --without development
+git     add Procfile
+git     commit -m "release-$release_time"
+git     merge --no-ff origin/master
+git     push heroku master
+git     tag -a $release_time -m "$release_time"
+git     checkout master
+#+END_SRC
+

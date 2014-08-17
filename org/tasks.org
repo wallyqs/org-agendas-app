@@ -1,0 +1,25 @@
+#+TITLE:       Tasks
+#+runmode:     chained
+#+final_task:  none
+
+A group of tasks that would be helpful during development.
+
+*** Recreating the database
+
+#+name: drop-database
+#+BEGIN_SRC ruby :dir .
+$LOAD_PATH << File.dirname(__FILE__)
+require 'lib/environment'
+
+DB = Sequel.connect({
+  :host         => DATABASE_URI.host,
+  :port         => DATABASE_URI.port,
+  :user         => DATABASE_URI.user,
+  :password     => DATABASE_URI.password,
+  :adapter      => DATABASE_URI.scheme
+})
+
+sql = "drop database #{DATABASE_URI.path[1..-1]};" 
+puts  "Executing: '#{sql}'"
+DB.run sql
+#+END_SRC

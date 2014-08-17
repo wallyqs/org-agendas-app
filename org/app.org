@@ -1,0 +1,208 @@
+#+TITLE:    Web app
+#+startup:  content
+
+* Bootstrap
+** Gem dependencies
+
+#+begin_src ruby :tangle Gemfile
+source "https://rubygems.org"
+
+gem 'sinatra'
+gem 'sinatra-contrib'
+gem 'puma'
+gem 'org-ruby'
+gem 'dotenv'
+gem 'pg'
+gem 'sequel'
+
+group :development do
+  gem 'shotgun'
+  gem 'org-converge'
+  gem 'guard'
+  gem 'heroku'
+end
+#+end_src
+
+** Config.ru
+
+#+begin_src ruby :tangle config.ru
+$LOAD_PATH << File.dirname(__FILE__)
+require 'lib/app'
+
+run Sinatra::Application
+#+end_src
+
+** Running environment
+
+#+BEGIN_SRC ruby :tangle lib/environment.rb :mkdirp true
+require 'uri'
+require 'sequel'
+require 'dotenv'
+
+if File.exists?('.env')
+  Dotenv.load
+elsif File.exists?('../.env')
+  Dotenv.load('../.env')  # Migrations run at '$APP_ROOT/lib' level
+else
+  raise "Could not load running environment"
+end
+
+DATABASE_URI = URI(ENV['DATABASE_URI'])
+#+END_SRC
+
+** Database connection
+
+Besides the time when we create the database,
+we only need to get the connection from the database.
+
+#+BEGIN_SRC ruby :tangle lib/db/connection.rb
+require 'lib/environment'
+DB = Sequel.connect(ENV['DATABASE_URI'])
+#+END_SRC
+
+** Load dependencies and running environment
+
+#+begin_src ruby :tangle lib/app.rb :mkdirp true
+require 'sinatra'
+require 'org-ruby'
+require 'erb'
+require 'lib/db/connection'
+require 'lib/db/models'
+$stdout.sync = true
+#+end_src
+
+* Database models
+** Agenda model
+
+#+BEGIN_SRC ruby :tangle lib/db/models/agenda.rb :mkdirp true
+  class Agenda < Sequel::Model
+
+    def parsed_title
+      Orgmode::Parser.new(self[:content]).in_buffer_settings['TITLE']
+    end
+
+    def sample_text
+      org = Orgmode::Parser.new(self[:content])
+      if self[:title] and not self[:title].empty?
+        self[:title]
+      elsif org.in_buffer_settings['TITLE'] and not org.in_buffer_settings['TITLE'].empty?
+        org.in_buffer_settings['TITLE']
+      else
+        org.headlines.first.headline_text
+      end
+    end
+
+    def to_html
+      Orgmode::Parser.new(self[:content]).to_html
+    end
+  end
+#+END_SRC
+
+** Loading all the models
+
+#+BEGIN_SRC ruby :tangle lib/db/models.rb
+require 'lib/db/models/agenda'
+#+END_SRC
+
+* Frontend
+** Layout
+
+#+BEGIN_SRC rhtml :tangle lib/views/layout.erb
+  <html>
+    <head>
+      <title>Org mode Agendas</title>
+    </head>
+    <body>
+      <h1>Org mode Agendas</h1>
+      <%= yield %>
+    </body>
+  </html>
+#+END_SRC
+
+** Shows all the agendas
+
+#+BEGIN_SRC ruby :tangle lib/app.rb
+
+get '/' do
+  @texts = Agenda.all
+
+  erb :texts
+end
+
+#+END_SRC
+
+#+begin_src rhtml :tangle lib/views/texts.erb :mkdirp true
+  <h1>Agendas</h1>
+
+  <ul>
+  <% @texts.each do |text| %>
+    <li><%= text.sample_text %></li>
+  <% end %>
+  </ul>
+#+end_src
+
+* API
+** Fetch full agenda
+
+This merges the content of everything that has been put in the Agenda.
+
+Decide whether to:
+ 
+- Keep a single agenda that is updated on each request (easier to manage, useful right away)
+- Keep a relation of agendas to the files and the updates being done
+
+#+BEGIN_SRC ruby :tangle lib/app.rb
+
+get "/api/v1/agendas/:name.?:format?" do
+  agenda = Agenda.where(:name => params[:name]).all
+  org_content = agenda.inject('') do |merged_content, org|
+    merged_content += org.values[:content]
+  end
+
+  case params[:format]
+  when 'html'
+    content_type 'text/html'
+    Orgmode::Parser.new(org_content).to_html
+  when 'json'
+    content_type 'application/json'
+    '{"status": "TBD" }'
+  else
+    content_type 'text/plain'
+    org_content
+  end
+end
+
+#+END_SRC
+
+** Append to an agenda
+
+#+BEGIN_SRC ruby :tangle lib/app.rb
+
+put "/api/v1/agendas/:name.?:format?" do
+  body = request.body.read
+
+  org = nil
+  begin
+    org = Orgmode::Parser.new(body)
+  rescue => e
+    puts "Error during parsing: "
+    puts e
+    halt 500
+  end
+
+  begin
+    t = Agenda.new({
+      :title   => org.in_buffer_settings['TITLE'] || '',
+      :content => body,
+      :name => params[:name]
+    })
+    t.save
+  rescue => e
+    puts e
+    halt 500
+  end
+
+  200
+end
+
+#+END_SRC
