@@ -14,10 +14,10 @@ gem 'org-ruby'
 gem 'dotenv'
 gem 'pg'
 gem 'sequel'
+gem 'org-converge'
 
 group :development do
   gem 'shotgun'
-  gem 'org-converge'
   gem 'guard'
   gem 'heroku'
 end

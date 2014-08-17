@@ -1,6 +1,12 @@
 #+TITLE:   Deployment
 #+include: "org/environment.org" :tag production
 
+*** Override the environment setting for production use
+
+#+BEGIN_SRC sh :tangle .env
+DATABASE_URI=$HEROKU_POSTGRESQL_CHARCOAL_URL
+#+END_SRC
+
 *** Releasing the application to Heroku
 
 #+begin_src sh :tangle Procfile
@@ -14,10 +20,10 @@ git     branch   heroku-master-$release_time
 git     checkout heroku-master-$release_time
 bundle  install --without development
 git     add Procfile
+git     add .env
 git     commit -m "release-$release_time"
 git     merge --no-ff origin/master
 git     push heroku master
 git     tag -a $release_time -m "$release_time"
 git     checkout master
 #+END_SRC
-
