@@ -44,11 +44,10 @@ if File.exists?('.env')
 elsif File.exists?('../.env')
   Dotenv.load('../.env')  # Migrations run at '$APP_ROOT/lib' level
 else
-  puts ENV
-  raise "Could not load running environment"
+  raise "Could not load running environment: #{ENV.inspect}"
 end
 
-DATABASE_URI = URI(ENV['DATABASE_URI'])
+DATABASE_URI = URI(ENV['HEROKU_POSTGRESQL_CHARCOAL_URL'] || ENV['DATABASE_URI'])
 #+END_SRC
 
 ** Database connection
@@ -58,7 +57,7 @@ we only need to get the connection from the database.
 
 #+BEGIN_SRC ruby :tangle lib/db/connection.rb
 require 'lib/environment'
-DB = Sequel.connect(ENV['DATABASE_URI'])
+DB = Sequel.connect(ENV['HEROKU_POSTGRESQL_CHARCOAL_URL'] || ENV['DATABASE_URI'])
 #+END_SRC
 
 ** Load dependencies and running environment
