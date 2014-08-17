@@ -44,6 +44,7 @@ if File.exists?('.env')
 elsif File.exists?('../.env')
   Dotenv.load('../.env')  # Migrations run at '$APP_ROOT/lib' level
 else
+  puts ENV
   raise "Could not load running environment"
 end
 
