@@ -45,8 +45,9 @@ begin
   elsif File.exists?('../.env')
     Dotenv.load('../.env')  # Migrations run at '$APP_ROOT/lib' level
   end
-rescue
-  # skip
+rescue => e 
+  puts e
+  puts e.backtrace.join("\n")
 end
 
 DATABASE_URI = URI(ENV['DATABASE_URL'])
