@@ -47,7 +47,7 @@ else
   raise "Could not load running environment: #{ENV.inspect}"
 end
 
-DATABASE_URI = URI(ENV['HEROKU_POSTGRESQL_CHARCOAL_URL'] || ENV['DATABASE_URI'])
+DATABASE_URI = URI(ENV['DATABASE_URL'])
 #+END_SRC
 
 ** Database connection
@@ -55,9 +55,9 @@ DATABASE_URI = URI(ENV['HEROKU_POSTGRESQL_CHARCOAL_URL'] || ENV['DATABASE_URI'])
 Besides the time when we create the database,
 we only need to get the connection from the database.
 
-#+BEGIN_SRC ruby :tangle lib/db/connection.rb
+#+BEGIN_SRC ruby :tangle lib/db/connection.rb :mkdirp true
 require 'lib/environment'
-DB = Sequel.connect(ENV['HEROKU_POSTGRESQL_CHARCOAL_URL'] || ENV['DATABASE_URI'])
+DB = Sequel.connect(ENV['DATABASE_URL'])
 #+END_SRC
 
 ** Load dependencies and running environment

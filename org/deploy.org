@@ -1,12 +1,6 @@
 #+TITLE:   Deployment
 #+include: "org/environment.org" :tag production
 
-*** Override the environment setting for production use
-
-#+BEGIN_SRC sh :tangle .env
-DATABASE_URI=$HEROKU_POSTGRESQL_CHARCOAL_URL
-#+END_SRC
-
 *** Releasing the application to Heroku
 
 #+begin_src sh :tangle Procfile
