@@ -1,4 +1,10 @@
   class Agenda < Sequel::Model
+    plugin :validation_helpers
+
+    def validate
+      super
+      validates_unique :name
+    end
 
     def parsed_title
       Orgmode::Parser.new(self[:content]).in_buffer_settings['TITLE']

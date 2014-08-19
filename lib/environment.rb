@@ -13,4 +13,4 @@ rescue => e
   puts e.backtrace.join("\n")
 end
 
-DATABASE_URI = URI(ENV['DATABASE_URL'])
+DATABASE_URL = URI(ENV['DATABASE_URL'])

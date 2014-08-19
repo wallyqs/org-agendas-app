@@ -2,6 +2,8 @@
 
   <ul>
   <% @texts.each do |text| %>
-    <li><%= text.sample_text %></li>
+    <li>
+      <a href="/agendas/<%= text.name %>.html"><%= text.sample_text %></a>
+    </li>
   <% end %>
   </ul>

@@ -12,6 +12,11 @@ get '/' do
 end
 
 
+get '/agendas/:name.?:format?' do
+  @org = Agenda.where(:name => params[:name]).first
+  erb :text
+end
+
 get "/api/v1/agendas/:name.?:format?" do
   agenda = Agenda.where(:name => params[:name]).all
   org_content = agenda.inject('') do |merged_content, org|
@@ -45,14 +50,14 @@ put "/api/v1/agendas/:name.?:format?" do
   end
 
   begin
-    t = Agenda.new({
-      :title   => org.in_buffer_settings['TITLE'] || '',
-      :content => body,
-      :name => params[:name]
-    })
+    t = Agenda.where(:name => params[:name]).first || Agenda.new(:name => params[:name])
+    t.title   ||= org.in_buffer_settings['TITLE']
+    t.content ||= body
     t.save
   rescue => e
     puts e
+    puts e.backtrace
+    puts e.backtrace.join("\n")
     halt 500
   end
 
