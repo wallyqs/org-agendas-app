@@ -4,7 +4,49 @@
 
 A group of tasks that would be helpful during development.
 
-*** Recreating the database
+*** Create the Database						:development:
+
+If we cannot connect to the database, we first interpret it as
+the database has not been created yet and try to create it once.
+This would be done mostly development environment.
+
+#+name: database-status
+#+begin_src ruby :dir .
+  $LOAD_PATH << File.dirname(__FILE__)
+  begin
+    require 'lib/db/connection'
+
+    puts
+    puts "Database lives at #{ENV['DATABASE_URL']}"
+    puts
+    puts "--- Current tables ---"
+    puts
+    puts DB.tables
+    puts
+  rescue
+    exit 1
+  end
+#+end_src
+
+#+name: create-database
+#+begin_src ruby :dir . :unless database-status
+$LOAD_PATH << File.dirname(__FILE__)
+require 'lib/environment'
+
+DB = Sequel.connect({
+  :host         => DATABASE_URL.host,
+  :port         => DATABASE_URL.port,
+  :user         => DATABASE_URL.user,
+  :password     => DATABASE_URL.password,
+  :adapter      => DATABASE_URL.scheme
+})
+
+sql = "create database #{DATABASE_URL.path[1..-1]};" 
+puts  "Executing: '#{sql}'"
+DB.run sql
+#+end_src
+
+*** Dropping the database
 
 #+name: drop-database
 #+BEGIN_SRC ruby :dir .
